@@ -1,6 +1,3 @@
-// form.js
-// ES module: экспортирует initForm, enableUploadListener, bindScaleAndEffects, handleFormSubmit, openForm, closeForm
-
 const UPLOAD_URL = 'https://29.javascript.htmlacademy.pro/kekstagram';
 const OVERLAY_HIDDEN_CLASS = 'hidden';
 const BODY_MODAL_CLASS = 'modal-open';
@@ -83,7 +80,6 @@ function initForm(options = {}) {
   const form = $(s.form);
 
   if (!form) {
-    console.warn('form.js: форма не найдена по селектору', s.form);
     state.inited = true;
     return state;
   }
@@ -122,31 +118,29 @@ function initForm(options = {}) {
         errorTextClass: 'img-upload__error'
       }, true);
 
-      const hashtagsNode = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
-      const descriptionNode = $(state.selectors.description, state.form) || $(state.selectors.description);
+      const hashtagsNodeLocal = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
+      const descriptionNodeLocal = $(state.selectors.description, state.form) || $(state.selectors.description);
 
-      if (state.pristine && hashtagsNode) {
+      if (state.pristine && hashtagsNodeLocal) {
         const parse = (v) => (!v ? [] : v.trim().split(/\s+/).filter(Boolean));
         const regex = /^#[\p{L}\p{N}]{1,19}$/u;
 
-        state.pristine.addValidator(hashtagsNode, (v) => parse(v).every((t) => regex.test(t)), 'Неверный формат хэш-тега');
-        state.pristine.addValidator(hashtagsNode, (v) => parse(v).length <= 5, 'Нельзя указать больше 5 хэш-тегов');
-        state.pristine.addValidator(hashtagsNode, (v) => {
+        state.pristine.addValidator(hashtagsNodeLocal, (v) => parse(v).every((t) => regex.test(t)), 'Неверный формат хэш-тега');
+        state.pristine.addValidator(hashtagsNodeLocal, (v) => parse(v).length <= 5, 'Нельзя указать больше 5 хэштегов');
+        state.pristine.addValidator(hashtagsNodeLocal, (v) => {
           const arr = parse(v).map((t) => t.toLowerCase());
           return new Set(arr).size === arr.length;
         }, 'Хэш-теги не должны повторяться');
       }
 
-      if (state.pristine && descriptionNode) {
-        state.pristine.addValidator(descriptionNode, (v) => !v || v.length <= 140, 'Комментарий не может быть длиннее 140 символов');
+      if (state.pristine && descriptionNodeLocal) {
+        state.pristine.addValidator(descriptionNodeLocal, (v) => !v || v.length <= 140, 'Комментарий не может быть длиннее 140 символов');
       }
     } catch (e) {
-      console.warn('form.js: ошибка Pristine', e);
       state.pristine = null;
     }
   } else {
     state.pristine = null;
-    console.warn('form.js: Pristine не найден.');
   }
 
   const hashtagsNode = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
@@ -242,10 +236,10 @@ function closeForm() {
 
 function onDocumentKeydown(e) {
   if (e.key === 'Escape' || e.key === 'Esc') {
-    const hashtagsNode = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
-    const descriptionNode = $(state.selectors.description, state.form) || $(state.selectors.description);
+    const hashtagsNodeLocal = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
+    const descriptionNodeLocal = $(state.selectors.description, state.form) || $(state.selectors.description);
 
-    if (document.activeElement === hashtagsNode || document.activeElement === descriptionNode) {
+    if (document.activeElement === hashtagsNodeLocal || document.activeElement === descriptionNodeLocal) {
       return;
     }
 
@@ -342,7 +336,6 @@ function onEffectChange(evt) {
   }
 
   if (typeof noUiSlider === 'undefined') {
-    console.warn('form.js: noUiSlider не найден — слайдер не будет работать');
     const start = cfg.slider.start;
     applyFilterToPreview(cfg.apply(start));
     if (state.effectValueInput) {
@@ -395,12 +388,10 @@ function bindEffectsList() {
 
 function enableUploadListener() {
   if (!state.inited) {
-    console.warn('form.js: вызови initForm() перед enableUploadListener()');
     return;
   }
 
   if (!state.fileInput) {
-    console.warn('form.js: file input не найден');
     return;
   }
 
@@ -423,7 +414,6 @@ function bindScaleAndEffects() {
 
 function handleFormSubmit() {
   if (!state.inited) {
-    console.warn('form.js: вызови initForm() перед handleFormSubmit()');
     return;
   }
 
@@ -443,7 +433,6 @@ async function onFormSubmit(e) {
     try {
       valid = state.pristine.validate();
     } catch (err) {
-      console.warn(err);
       valid = true;
     }
   }
@@ -469,8 +458,7 @@ async function onFormSubmit(e) {
     document.write(text);
     document.close();
   } catch (err) {
-    console.error('form.js: Ошибка отправки', err);
-    alert('Ошибка при отправке формы. Попробуйте ещё раз.');
+    notify('Ошибка при отправке формы. Попробуйте ещё раз.');
   } finally {
     if (state.submitBtn) {
       state.submitBtn.disabled = false;
