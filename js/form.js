@@ -460,7 +460,7 @@ async function onFormSubmit(e) {
     document.write(text);
     document.close();
   } catch (err) {
-    notify('Ошибка при отправке формы. Попробуйте ещё раз.');
+    alert('Ошибка при отправке формы. Попробуйте ещё раз.');
   } finally {
     if (state.submitBtn) {
       state.submitBtn.disabled = false;
