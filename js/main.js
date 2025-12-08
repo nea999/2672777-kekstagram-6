@@ -31,19 +31,18 @@ const renderThumbnails = () => {
     fragment.appendChild(thumbnail);
   });
 
-  // Очищаем контейнер и добавляем миниатюры
+
   const existingPictures = pictureContainer.querySelectorAll('.picture');
   existingPictures.forEach((picture) => picture.remove());
 
   pictureContainer.appendChild(fragment);
 };
 
-// Инициализация при загрузке
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Инициализация формы: передаём селекторы, соответствующие твоему HTML
   initForm({
     form: '.img-upload__form',
-    fileInput: '#upload-file',                     // твой input имеет id="upload-file"
+    fileInput: '#upload-file',
     overlay: '.img-upload__overlay',
     cancelBtn: '#upload-cancel',
     submitBtn: '#upload-submit',
@@ -61,11 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
     description: '.text__description'
   });
 
-  // Подключаем обработчики формы (не подставляем файл в превью)
   enableUploadListener();
   bindScaleAndEffects();
   handleFormSubmit();
 
-  // Рендерим миниатюры
   renderThumbnails();
 });
