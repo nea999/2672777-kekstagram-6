@@ -7,12 +7,12 @@ const BODY_MODAL_CLASS = 'modal-open';
 
 const DEFAULT_SELECTORS = {
   form: '.img-upload__form',
-  fileInput: '.img-upload__input',            // #upload-file / .img-upload__input
+  fileInput: '.img-upload__input',
   overlay: '.img-upload__overlay',
-  cancelBtn: '#upload-cancel',                // в HTML id="upload-cancel"
-  submitBtn: '#upload-submit',                // id submit
+  cancelBtn: '#upload-cancel',
+  submitBtn: '#upload-submit',
   previewContainer: '.img-upload__preview',
-  previewImage: '.img-upload__preview img',   // <img> внутри превью
+  previewImage: '.img-upload__preview img',
   effectsList: '.effects__list',
   effectsPreview: '.effects__preview',
   effectLevelContainer: '.img-upload__effect-level',
@@ -25,14 +25,13 @@ const DEFAULT_SELECTORS = {
   scaleValue: '.scale__control--value'
 };
 
-// эффекты — параметры слайдера и функция формирования CSS
 const EFFECTS = {
-  none:  { slider: null, apply: () => '' },
-  chrome:{ slider: {min:0, max:1, step:0.1, start:1}, apply: (v)=>`grayscale(${v})` },
-  sepia: { slider: {min:0, max:1, step:0.1, start:1}, apply: (v)=>`sepia(${v})` },
-  marvin:{ slider: {min:0, max:100, step:1, start:100}, apply:(v)=>`invert(${v}%)` },
-  phobos:{ slider: {min:0, max:3, step:0.1, start:3}, apply:(v)=>`blur(${v}px)` },
-  heat:  { slider: {min:1, max:3, step:0.1, start:3}, apply:(v)=>`brightness(${v})` }
+  none: { slider: null, apply: () => '' },
+  chrome: { slider: { min: 0, max: 1, step: 0.1, start: 1 }, apply: (v) => `grayscale(${v})` },
+  sepia: { slider: { min: 0, max: 1, step: 0.1, start: 1 }, apply: (v) => `sepia(${v})` },
+  marvin: { slider: { min: 0, max: 100, step: 1, start: 100 }, apply: (v) => `invert(${v}%)` },
+  phobos: { slider: { min: 0, max: 3, step: 0.1, start: 3 }, apply: (v) => `blur(${v}px)` },
+  heat: { slider: { min: 1, max: 3, step: 0.1, start: 3 }, apply: (v) => `brightness(${v})` }
 };
 
 const state = {
@@ -59,19 +58,30 @@ const state = {
 };
 
 function $(sel, root = document) {
-  try { return root.querySelector(sel); } catch (e) { return null; }
-}
-function $all(sel, root = document) {
-  try { return Array.from(root.querySelectorAll(sel)); } catch (e) { return []; }
+  try {
+    return root.querySelector(sel);
+  } catch (e) {
+    return null;
+  }
 }
 
+function $all(sel, root = document) {
+  try {
+    return Array.from(root.querySelectorAll(sel));
+  } catch (e) {
+    return [];
+  }
+}
 
 function initForm(options = {}) {
-  if (state.inited) return state;
-  state.selectors = Object.assign({}, DEFAULT_SELECTORS, options);
+  if (state.inited) {
+    return state;
+  }
 
+  state.selectors = Object.assign({}, DEFAULT_SELECTORS, options);
   const s = state.selectors;
   const form = $(s.form);
+
   if (!form) {
     console.warn('form.js: форма не найдена по селектору', s.form);
     state.inited = true;
@@ -94,12 +104,16 @@ function initForm(options = {}) {
   state.scaleBigger = form.querySelector(s.scaleBigger) || $(s.scaleBigger);
   state.scaleValueNode = form.querySelector(s.scaleValue) || $(s.scaleValue);
 
-  // ensure form attributes are present (per assignment)
-  if (!state.form.getAttribute('action')) state.form.setAttribute('action', UPLOAD_URL);
-  if (!state.form.getAttribute('method')) state.form.setAttribute('method', 'post');
-  if (!state.form.getAttribute('enctype')) state.form.setAttribute('enctype', 'multipart/form-data');
+  if (!state.form.getAttribute('action')) {
+    state.form.setAttribute('action', UPLOAD_URL);
+  }
+  if (!state.form.getAttribute('method')) {
+    state.form.setAttribute('method', 'post');
+  }
+  if (!state.form.getAttribute('enctype')) {
+    state.form.setAttribute('enctype', 'multipart/form-data');
+  }
 
-  // Pristine (если подключён)
   if (typeof Pristine !== 'undefined') {
     try {
       state.pristine = new Pristine(state.form, {
@@ -108,21 +122,23 @@ function initForm(options = {}) {
         errorTextClass: 'img-upload__error'
       }, true);
 
-      // валидация хэштегов и комментария
       const hashtagsNode = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
       const descriptionNode = $(state.selectors.description, state.form) || $(state.selectors.description);
+
       if (state.pristine && hashtagsNode) {
-        const parse = v => (!v ? [] : v.trim().split(/\s+/).filter(Boolean));
+        const parse = (v) => (!v ? [] : v.trim().split(/\s+/).filter(Boolean));
         const regex = /^#[\p{L}\p{N}]{1,19}$/u;
-        state.pristine.addValidator(hashtagsNode, v => parse(v).every(t=>regex.test(t)), 'Неверный формат хэш-тега');
-        state.pristine.addValidator(hashtagsNode, v => parse(v).length <= 5, 'Нельзя указать больше 5 хэш-тегов');
-        state.pristine.addValidator(hashtagsNode, v => {
-          const arr = parse(v).map(t=>t.toLowerCase());
+
+        state.pristine.addValidator(hashtagsNode, (v) => parse(v).every((t) => regex.test(t)), 'Неверный формат хэш-тега');
+        state.pristine.addValidator(hashtagsNode, (v) => parse(v).length <= 5, 'Нельзя указать больше 5 хэш-тегов');
+        state.pristine.addValidator(hashtagsNode, (v) => {
+          const arr = parse(v).map((t) => t.toLowerCase());
           return new Set(arr).size === arr.length;
         }, 'Хэш-теги не должны повторяться');
       }
+
       if (state.pristine && descriptionNode) {
-        state.pristine.addValidator(descriptionNode, v => !v || v.length <= 140, 'Комментарий не может быть длиннее 140 символов');
+        state.pristine.addValidator(descriptionNode, (v) => !v || v.length <= 140, 'Комментарий не может быть длиннее 140 символов');
       }
     } catch (e) {
       console.warn('form.js: ошибка Pristine', e);
@@ -130,54 +146,95 @@ function initForm(options = {}) {
     }
   } else {
     state.pristine = null;
-    console.warn('form.js: Pristine не найден. Подключите vendor/pristine/pristine.min.js для красивых сообщений об ошибках.');
+    console.warn('form.js: Pristine не найден.');
   }
 
+  const hashtagsNode = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
+  const descriptionNode = $(state.selectors.description, state.form) || $(state.selectors.description);
 
-  const hashtagsNodeFlag = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
-  const descriptionNodeFlag = $(state.selectors.description, state.form) || $(state.selectors.description);
-  if (hashtagsNodeFlag) hashtagsNodeFlag.addEventListener('keydown', e => { if (e.key === 'Escape' || e.key === 'Esc') e.stopPropagation(); });
-  if (descriptionNodeFlag) descriptionNodeFlag.addEventListener('keydown', e => { if (e.key === 'Escape' || e.key === 'Esc') e.stopPropagation(); });
+  if (hashtagsNode) {
+    hashtagsNode.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        e.stopPropagation();
+      }
+    });
+  }
 
-  // default scale value: use existing value or 100%
+  if (descriptionNode) {
+    descriptionNode.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        e.stopPropagation();
+      }
+    });
+  }
+
   let defaultScale = 100;
   if (state.scaleValueNode && state.scaleValueNode.value) {
     const parsed = parseInt(state.scaleValueNode.value, 10);
-    if (!Number.isNaN(parsed)) defaultScale = parsed;
+    if (!Number.isNaN(parsed)) {
+      defaultScale = parsed;
+    }
   }
   applyScale(defaultScale);
 
-  if (state.effectLevelContainer) state.effectLevelContainer.style.display = 'none';
+  if (state.effectLevelContainer) {
+    state.effectLevelContainer.style.display = 'none';
+  }
 
   state.inited = true;
   return state;
 }
 
 function openForm() {
-  if (!state.inited || !state.overlay) return;
+  if (!state.inited || !state.overlay) {
+    return;
+  }
   state.overlay.classList.remove(OVERLAY_HIDDEN_CLASS);
   document.body.classList.add(BODY_MODAL_CLASS);
   document.addEventListener('keydown', onDocumentKeydown);
 }
 
 function closeForm() {
-  if (!state.inited || !state.overlay || !state.form) return;
+  if (!state.inited || !state.overlay || !state.form) {
+    return;
+  }
+
   state.overlay.classList.add(OVERLAY_HIDDEN_CLASS);
   document.body.classList.remove(BODY_MODAL_CLASS);
 
-  try { state.form.reset(); } catch (e) {}
-  if (state.pristine) { try { state.pristine.reset(); } catch (e) {} }
+  try {
+    state.form.reset();
+  } catch (e) {
+    // ignore
+  }
+
+  if (state.pristine) {
+    try {
+      state.pristine.reset();
+    } catch (e) {
+      // ignore
+    }
+  }
 
   if (state.noUiSliderInstance && state.effectSliderNode && state.noUiSliderInstance.destroy) {
-    try { state.noUiSliderInstance.destroy(); } catch (e) {}
+    try {
+      state.noUiSliderInstance.destroy();
+    } catch (e) {
+      // ignore
+    }
     state.noUiSliderInstance = null;
   }
 
   clearPreviewFilter();
-
   applyScale(100);
 
-  if (state.fileInput) { try { state.fileInput.value = ''; } catch (e) {} }
+  if (state.fileInput) {
+    try {
+      state.fileInput.value = '';
+    } catch (e) {
+      // ignore
+    }
+  }
 
   document.removeEventListener('keydown', onDocumentKeydown);
   document.body.style.overflow = '';
@@ -187,7 +244,11 @@ function onDocumentKeydown(e) {
   if (e.key === 'Escape' || e.key === 'Esc') {
     const hashtagsNode = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
     const descriptionNode = $(state.selectors.description, state.form) || $(state.selectors.description);
-    if (document.activeElement === hashtagsNode || document.activeElement === descriptionNode) return;
+
+    if (document.activeElement === hashtagsNode || document.activeElement === descriptionNode) {
+      return;
+    }
+
     e.preventDefault();
     closeForm();
   }
@@ -196,19 +257,32 @@ function onDocumentKeydown(e) {
 function applyScale(percent) {
   const scale = percent / 100;
   const img = state.previewImage || (state.previewContainer && state.previewContainer.querySelector('img'));
-  if (img) img.style.transform = `scale(${scale})`;
-  if (state.scaleValueNode) state.scaleValueNode.value = `${percent}%`;
+
+  if (img) {
+    img.style.transform = `scale(${scale})`;
+  }
+
+  if (state.scaleValueNode) {
+    state.scaleValueNode.value = `${percent}%`;
+  }
 }
 
 function bindScaleControls() {
-  if (!state.scaleSmaller || !state.scaleBigger || !state.scaleValueNode) return;
-  const STEP = 25, MIN = 25, MAX = 100;
+  if (!state.scaleSmaller || !state.scaleBigger || !state.scaleValueNode) {
+    return;
+  }
+
+  const STEP = 25;
+  const MIN = 25;
+  const MAX = 100;
+
   state.scaleSmaller.addEventListener('click', (ev) => {
     ev.preventDefault();
     const cur = parseInt(state.scaleValueNode.value, 10) || 100;
     const next = Math.max(MIN, cur - STEP);
     applyScale(next);
   });
+
   state.scaleBigger.addEventListener('click', (ev) => {
     ev.preventDefault();
     const cur = parseInt(state.scaleValueNode.value, 10) || 100;
@@ -219,42 +293,61 @@ function bindScaleControls() {
 
 function clearPreviewFilter() {
   const img = state.previewImage || (state.previewContainer && state.previewContainer.querySelector('img'));
-  if (img) img.style.filter = '';
+  if (img) {
+    img.style.filter = '';
+  }
 }
 
 function applyFilterToPreview(filterStr) {
   const img = state.previewImage || (state.previewContainer && state.previewContainer.querySelector('img'));
-  if (img) img.style.filter = filterStr;
+  if (img) {
+    img.style.filter = filterStr;
+  }
 }
 
 function onEffectChange(evt) {
   const target = evt.target;
-  if (!target) return;
+  if (!target) {
+    return;
+  }
+
   const value = target.value || target.getAttribute('value') || 'none';
   const effect = (value in EFFECTS) ? value : 'none';
   state.currentEffect = effect;
 
   if (state.noUiSliderInstance && state.effectSliderNode && state.noUiSliderInstance.destroy) {
-    try { state.noUiSliderInstance.destroy(); } catch (e) {}
+    try {
+      state.noUiSliderInstance.destroy();
+    } catch (e) {
+      // ignore
+    }
     state.noUiSliderInstance = null;
   }
 
   const cfg = EFFECTS[effect];
 
   if (!cfg.slider) {
-    if (state.effectLevelContainer) state.effectLevelContainer.style.display = 'none';
+    if (state.effectLevelContainer) {
+      state.effectLevelContainer.style.display = 'none';
+    }
     applyFilterToPreview('');
-    if (state.effectValueInput) state.effectValueInput.value = '';
+    if (state.effectValueInput) {
+      state.effectValueInput.value = '';
+    }
     return;
   }
 
-  if (state.effectLevelContainer) state.effectLevelContainer.style.display = '';
+  if (state.effectLevelContainer) {
+    state.effectLevelContainer.style.display = '';
+  }
 
   if (typeof noUiSlider === 'undefined') {
     console.warn('form.js: noUiSlider не найден — слайдер не будет работать');
     const start = cfg.slider.start;
     applyFilterToPreview(cfg.apply(start));
-    if (state.effectValueInput) state.effectValueInput.value = String(start);
+    if (state.effectValueInput) {
+      state.effectValueInput.value = String(start);
+    }
     return;
   }
 
@@ -264,29 +357,39 @@ function onEffectChange(evt) {
     range: { min: cfg.slider.min, max: cfg.slider.max },
     connect: 'lower'
   });
-  state.noUiSliderInstance = state.effectSliderNode.noUiSlider;
 
+  state.noUiSliderInstance = state.effectSliderNode.noUiSlider;
   state.noUiSliderInstance.set(cfg.slider.start);
-  if (state.effectValueInput) state.effectValueInput.value = String(cfg.slider.start);
+
+  if (state.effectValueInput) {
+    state.effectValueInput.value = String(cfg.slider.start);
+  }
 
   state.noUiSliderInstance.on('update', (values) => {
     const raw = values[0];
     const parsed = (cfg.slider.step >= 1) ? Math.round(Number(raw)) : Number(raw);
     applyFilterToPreview(cfg.apply(parsed));
-    if (state.effectValueInput) state.effectValueInput.value = String(parsed);
+    if (state.effectValueInput) {
+      state.effectValueInput.value = String(parsed);
+    }
   });
 }
 
 function bindEffectsList() {
-  if (!state.effectsList) return;
-  state.effectsList.addEventListener('change', onEffectChange);
+  if (!state.effectsList) {
+    return;
+  }
 
+  state.effectsList.addEventListener('change', onEffectChange);
   const noneRadio = state.effectsList.querySelector('input[value="none"]') || state.effectsList.querySelector('input');
+
   if (noneRadio) {
     noneRadio.checked = true;
     noneRadio.dispatchEvent(new Event('change', { bubbles: true }));
   } else {
-    if (state.effectLevelContainer) state.effectLevelContainer.style.display = 'none';
+    if (state.effectLevelContainer) {
+      state.effectLevelContainer.style.display = 'none';
+    }
   }
 }
 
@@ -295,6 +398,7 @@ function enableUploadListener() {
     console.warn('form.js: вызови initForm() перед enableUploadListener()');
     return;
   }
+
   if (!state.fileInput) {
     console.warn('form.js: file input не найден');
     return;
@@ -314,8 +418,6 @@ function enableUploadListener() {
 
 function bindScaleAndEffects() {
   bindScaleControls();
-  bindScaleControls = bindScaleControls; // no-op to satisfy linter-like checks
-  bindScaleControls(); // ensure bound
   bindEffectsList();
 }
 
@@ -324,7 +426,11 @@ function handleFormSubmit() {
     console.warn('form.js: вызови initForm() перед handleFormSubmit()');
     return;
   }
-  if (!state.form) return;
+
+  if (!state.form) {
+    return;
+  }
+
   state.form.removeEventListener('submit', onFormSubmit);
   state.form.addEventListener('submit', onFormSubmit);
 }
@@ -334,17 +440,25 @@ async function onFormSubmit(e) {
 
   let valid = true;
   if (state.pristine) {
-    try { valid = state.pristine.validate(); } catch (err) { console.warn(err); valid = true; }
-  } else {
-    valid = true;
+    try {
+      valid = state.pristine.validate();
+    } catch (err) {
+      console.warn(err);
+      valid = true;
+    }
   }
-  if (!valid) return;
+
+  if (!valid) {
+    return;
+  }
 
   const fd = new FormData(state.form);
 
   if (state.submitBtn) {
     state.submitBtn.disabled = true;
-    if (!state.submitBtn.dataset._origText) { state.submitBtn.dataset._origText = state.submitBtn.textContent || '';
+    if (!state.submitBtn.dataset._origText) {
+      state.submitBtn.dataset._origText = state.submitBtn.textContent || '';
+    }
     state.submitBtn.textContent = 'Отправка...';
   }
 
