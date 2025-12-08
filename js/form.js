@@ -99,7 +99,9 @@ function initForm(options = {}) {
   state.scaleSmaller = form.querySelector(s.scaleSmaller) || $(s.scaleSmaller);
   state.scaleBigger = form.querySelector(s.scaleBigger) || $(s.scaleBigger);
   state.scaleValueNode = form.querySelector(s.scaleValue) || $(s.scaleValue);
-
+  if (state.scaleValueNode) {
+    state.scaleValueNode.setAttribute('readonly', true);
+  }
   if (!state.form.getAttribute('action')) {
     state.form.setAttribute('action', UPLOAD_URL);
   }
@@ -458,7 +460,7 @@ async function onFormSubmit(e) {
     document.write(text);
     document.close();
   } catch (err) {
-    notify('Ошибка при отправке формы. Попробуйте ещё раз.');
+    alert('Ошибка при отправке формы. Попробуйте ещё раз.');
   } finally {
     if (state.submitBtn) {
       state.submitBtn.disabled = false;
