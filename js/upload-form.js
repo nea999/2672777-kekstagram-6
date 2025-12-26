@@ -1,3 +1,8 @@
+import { sendData } from './api.js';
+import { query, queryAll } from './util.js';
+import { showSuccessMessage, showErrorMessage } from './form-messages.js';
+import { initValidation } from './form-validation.js';
+
 const UPLOAD_URL = 'https://29.javascript.htmlacademy.pro/kekstagram';
 const OVERLAY_HIDDEN_CLASS = 'hidden';
 const BODY_MODAL_CLASS = 'modal-open';
@@ -24,11 +29,11 @@ const DEFAULT_SELECTORS = {
 
 const EFFECTS = {
   none: { slider: null, apply: () => '' },
-  chrome: { slider: { min: 0, max: 1, step: 0.1, start: 1 }, apply: (v) => `grayscale(${v})` },
-  sepia: { slider: { min: 0, max: 1, step: 0.1, start: 1 }, apply: (v) => `sepia(${v})` },
-  marvin: { slider: { min: 0, max: 100, step: 1, start: 100 }, apply: (v) => `invert(${v}%)` },
-  phobos: { slider: { min: 0, max: 3, step: 0.1, start: 3 }, apply: (v) => `blur(${v}px)` },
-  heat: { slider: { min: 1, max: 3, step: 0.1, start: 3 }, apply: (v) => `brightness(${v})` }
+  chrome: { slider: { min: 0, max: 1, step: 0.1, start: 1 }, apply: (value) => `grayscale(${value})` },
+  sepia: { slider: { min: 0, max: 1, step: 0.1, start: 1 }, apply: (value) => `sepia(${value})` },
+  marvin: { slider: { min: 0, max: 100, step: 1, start: 100 }, apply: (value) => `invert(${value}%)` },
+  phobos: { slider: { min: 0, max: 3, step: 0.1, start: 3 }, apply: (value) => `blur(${value}px)` },
+  heat: { slider: { min: 1, max: 3, step: 0.1, start: 3 }, apply: (value) => `brightness(${value})` }
 };
 
 const state = {
@@ -51,24 +56,9 @@ const state = {
   scaleValueNode: null,
   pristine: null,
   noUiSliderInstance: null,
-  currentEffect: 'none'
+  currentEffect: 'none',
+  defaultPreviewSrc: ''
 };
-
-function $(sel, root = document) {
-  try {
-    return root.querySelector(sel);
-  } catch (e) {
-    return null;
-  }
-}
-
-function $all(sel, root = document) {
-  try {
-    return Array.from(root.querySelectorAll(sel));
-  } catch (e) {
-    return [];
-  }
-}
 
 function initForm(options = {}) {
   if (state.inited) {
@@ -76,8 +66,8 @@ function initForm(options = {}) {
   }
 
   state.selectors = Object.assign({}, DEFAULT_SELECTORS, options);
-  const s = state.selectors;
-  const form = $(s.form);
+  const selectors = state.selectors;
+  const form = query(selectors.form);
 
   if (!form) {
     state.inited = true;
@@ -85,20 +75,28 @@ function initForm(options = {}) {
   }
 
   state.form = form;
-  state.fileInput = form.querySelector(s.fileInput) || $(s.fileInput);
-  state.overlay = form.querySelector(s.overlay) || $(s.overlay);
-  state.cancelBtn = form.querySelector(s.cancelBtn) || $(s.cancelBtn);
-  state.submitBtn = form.querySelector(s.submitBtn) || $(s.submitBtn);
-  state.previewContainer = form.querySelector(s.previewContainer) || $(s.previewContainer);
-  state.previewImage = form.querySelector(s.previewImage) || $(s.previewImage);
-  state.effectsList = form.querySelector(s.effectsList) || $(s.effectsList);
-  state.effectsPreviewNodes = $all(s.effectsPreview, form);
-  state.effectLevelContainer = form.querySelector(s.effectLevelContainer) || $(s.effectLevelContainer);
-  state.effectSliderNode = form.querySelector(s.effectSliderNode) || $(s.effectSliderNode);
-  state.effectValueInput = form.querySelector(s.effectValueInput) || $(s.effectValueInput);
-  state.scaleSmaller = form.querySelector(s.scaleSmaller) || $(s.scaleSmaller);
-  state.scaleBigger = form.querySelector(s.scaleBigger) || $(s.scaleBigger);
-  state.scaleValueNode = form.querySelector(s.scaleValue) || $(s.scaleValue);
+  state.fileInput = form.querySelector(selectors.fileInput) || query(selectors.fileInput);
+  state.overlay = form.querySelector(selectors.overlay) || query(selectors.overlay);
+  state.cancelBtn = form.querySelector(selectors.cancelBtn) || query(selectors.cancelBtn);
+  state.submitBtn = form.querySelector(selectors.submitBtn) || query(selectors.submitBtn);
+  state.previewContainer = form.querySelector(selectors.previewContainer) || query(selectors.previewContainer);
+  state.previewImage = form.querySelector(selectors.previewImage) || query(selectors.previewImage);
+  state.effectsList = form.querySelector(selectors.effectsList) || query(selectors.effectsList);
+  state.effectsPreviewNodes = queryAll(selectors.effectsPreview, form);
+  state.effectLevelContainer = form.querySelector(selectors.effectLevelContainer) || query(selectors.effectLevelContainer);
+  state.effectSliderNode = form.querySelector(selectors.effectSliderNode) || query(selectors.effectSliderNode);
+  state.effectValueInput = form.querySelector(selectors.effectValueInput) || query(selectors.effectValueInput);
+  state.scaleSmaller = form.querySelector(selectors.scaleSmaller) || query(selectors.scaleSmaller);
+  state.scaleBigger = form.querySelector(selectors.scaleBigger) || query(selectors.scaleBigger);
+  state.scaleValueNode = form.querySelector(selectors.scaleValue) || query(selectors.scaleValue);
+
+  if (state.previewImage && !state.defaultPreviewSrc) {
+    state.defaultPreviewSrc = state.previewImage.src;
+  }
+
+  if (state.scaleValueNode) {
+    state.scaleValueNode.setAttribute('readonly', true);
+  }
 
   if (!state.form.getAttribute('action')) {
     state.form.setAttribute('action', UPLOAD_URL);
@@ -110,63 +108,32 @@ function initForm(options = {}) {
     state.form.setAttribute('enctype', 'multipart/form-data');
   }
 
-  if (typeof Pristine !== 'undefined') {
-    try {
-      state.pristine = new Pristine(state.form, {
-        classTo: 'img-upload__field-wrapper',
-        errorTextParent: 'img-upload__field-wrapper',
-        errorTextClass: 'img-upload__error'
-      }, true);
+  state.pristine = initValidation(state.form, state.selectors);
 
-      const hashtagsNodeLocal = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
-      const descriptionNodeLocal = $(state.selectors.description, state.form) || $(state.selectors.description);
-
-      if (state.pristine && hashtagsNodeLocal) {
-        const parse = (v) => (!v ? [] : v.trim().split(/\s+/).filter(Boolean));
-        const regex = /^#[\p{L}\p{N}]{1,19}$/u;
-
-        state.pristine.addValidator(hashtagsNodeLocal, (v) => parse(v).every((t) => regex.test(t)), 'Неверный формат хэш-тега');
-        state.pristine.addValidator(hashtagsNodeLocal, (v) => parse(v).length <= 5, 'Нельзя указать больше 5 хэштегов');
-        state.pristine.addValidator(hashtagsNodeLocal, (v) => {
-          const arr = parse(v).map((t) => t.toLowerCase());
-          return new Set(arr).size === arr.length;
-        }, 'Хэш-теги не должны повторяться');
-      }
-
-      if (state.pristine && descriptionNodeLocal) {
-        state.pristine.addValidator(descriptionNodeLocal, (v) => !v || v.length <= 140, 'Комментарий не может быть длиннее 140 символов');
-      }
-    } catch (e) {
-      state.pristine = null;
-    }
-  } else {
-    state.pristine = null;
-  }
-
-  const hashtagsNode = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
-  const descriptionNode = $(state.selectors.description, state.form) || $(state.selectors.description);
+  const hashtagsNode = query(state.selectors.hashtags, state.form) || query(state.selectors.hashtags);
+  const descriptionNode = query(state.selectors.description, state.form) || query(state.selectors.description);
 
   if (hashtagsNode) {
-    hashtagsNode.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' || e.key === 'Esc') {
-        e.stopPropagation();
+    hashtagsNode.addEventListener('keydown', (evt) => {
+      if (evt.key === 'Escape' || evt.key === 'Esc') {
+        evt.stopPropagation();
       }
     });
   }
 
   if (descriptionNode) {
-    descriptionNode.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' || e.key === 'Esc') {
-        e.stopPropagation();
+    descriptionNode.addEventListener('keydown', (evt) => {
+      if (evt.key === 'Escape' || evt.key === 'Esc') {
+        evt.stopPropagation();
       }
     });
   }
 
   let defaultScale = 100;
   if (state.scaleValueNode && state.scaleValueNode.value) {
-    const parsed = parseInt(state.scaleValueNode.value, 10);
-    if (!Number.isNaN(parsed)) {
-      defaultScale = parsed;
+    const parsedScale = parseInt(state.scaleValueNode.value, 10);
+    if (!Number.isNaN(parsedScale)) {
+      defaultScale = parsedScale;
     }
   }
   applyScale(defaultScale);
@@ -198,14 +165,14 @@ function closeForm() {
 
   try {
     state.form.reset();
-  } catch (e) {
+  } catch (error) {
     // ignore
   }
 
   if (state.pristine) {
     try {
       state.pristine.reset();
-    } catch (e) {
+    } catch (error) {
       // ignore
     }
   }
@@ -213,19 +180,34 @@ function closeForm() {
   if (state.noUiSliderInstance && state.effectSliderNode && state.noUiSliderInstance.destroy) {
     try {
       state.noUiSliderInstance.destroy();
-    } catch (e) {
+    } catch (error) {
       // ignore
     }
     state.noUiSliderInstance = null;
   }
 
   clearPreviewFilter();
+  state.currentEffect = 'none';
   applyScale(100);
+
+  if (state.effectLevelContainer) {
+    state.effectLevelContainer.style.display = 'none';
+  }
+
+  if (state.previewImage && state.defaultPreviewSrc) {
+    state.previewImage.src = state.defaultPreviewSrc;
+  }
+
+  if (state.effectsPreviewNodes && state.effectsPreviewNodes.length) {
+    state.effectsPreviewNodes.forEach((effectNode) => {
+      effectNode.style.backgroundImage = '';
+    });
+  }
 
   if (state.fileInput) {
     try {
       state.fileInput.value = '';
-    } catch (e) {
+    } catch (error) {
       // ignore
     }
   }
@@ -234,26 +216,26 @@ function closeForm() {
   document.body.style.overflow = '';
 }
 
-function onDocumentKeydown(e) {
-  if (e.key === 'Escape' || e.key === 'Esc') {
-    const hashtagsNodeLocal = $(state.selectors.hashtags, state.form) || $(state.selectors.hashtags);
-    const descriptionNodeLocal = $(state.selectors.description, state.form) || $(state.selectors.description);
+function onDocumentKeydown(evt) {
+  if (evt.key === 'Escape' || evt.key === 'Esc') {
+    const hashtagsNodeLocal = query(state.selectors.hashtags, state.form) || query(state.selectors.hashtags);
+    const descriptionNodeLocal = query(state.selectors.description, state.form) || query(state.selectors.description);
 
     if (document.activeElement === hashtagsNodeLocal || document.activeElement === descriptionNodeLocal) {
       return;
     }
 
-    e.preventDefault();
+    evt.preventDefault();
     closeForm();
   }
 }
 
 function applyScale(percent) {
   const scale = percent / 100;
-  const img = state.previewImage || (state.previewContainer && state.previewContainer.querySelector('img'));
+  const image = state.previewImage || (state.previewContainer && state.previewContainer.querySelector('img'));
 
-  if (img) {
-    img.style.transform = `scale(${scale})`;
+  if (image) {
+    image.style.transform = `scale(${scale})`;
   }
 
   if (state.scaleValueNode) {
@@ -270,32 +252,32 @@ function bindScaleControls() {
   const MIN = 25;
   const MAX = 100;
 
-  state.scaleSmaller.addEventListener('click', (ev) => {
-    ev.preventDefault();
-    const cur = parseInt(state.scaleValueNode.value, 10) || 100;
-    const next = Math.max(MIN, cur - STEP);
-    applyScale(next);
+  state.scaleSmaller.addEventListener('click', (evt) => {
+    evt.preventDefault();
+    const currentScale = parseInt(state.scaleValueNode.value, 10) || 100;
+    const nextScale = Math.max(MIN, currentScale - STEP);
+    applyScale(nextScale);
   });
 
-  state.scaleBigger.addEventListener('click', (ev) => {
-    ev.preventDefault();
-    const cur = parseInt(state.scaleValueNode.value, 10) || 100;
-    const next = Math.min(MAX, cur + STEP);
-    applyScale(next);
+  state.scaleBigger.addEventListener('click', (evt) => {
+    evt.preventDefault();
+    const currentScale = parseInt(state.scaleValueNode.value, 10) || 100;
+    const nextScale = Math.min(MAX, currentScale + STEP);
+    applyScale(nextScale);
   });
 }
 
 function clearPreviewFilter() {
-  const img = state.previewImage || (state.previewContainer && state.previewContainer.querySelector('img'));
-  if (img) {
-    img.style.filter = '';
+  const image = state.previewImage || (state.previewContainer && state.previewContainer.querySelector('img'));
+  if (image) {
+    image.style.filter = '';
   }
 }
 
-function applyFilterToPreview(filterStr) {
-  const img = state.previewImage || (state.previewContainer && state.previewContainer.querySelector('img'));
-  if (img) {
-    img.style.filter = filterStr;
+function applyFilterToPreview(filterString) {
+  const image = state.previewImage || (state.previewContainer && state.previewContainer.querySelector('img'));
+  if (image) {
+    image.style.filter = filterString;
   }
 }
 
@@ -312,15 +294,15 @@ function onEffectChange(evt) {
   if (state.noUiSliderInstance && state.effectSliderNode && state.noUiSliderInstance.destroy) {
     try {
       state.noUiSliderInstance.destroy();
-    } catch (e) {
+    } catch (error) {
       // ignore
     }
     state.noUiSliderInstance = null;
   }
 
-  const cfg = EFFECTS[effect];
+  const effectConfig = EFFECTS[effect];
 
-  if (!cfg.slider) {
+  if (!effectConfig.slider) {
     if (state.effectLevelContainer) {
       state.effectLevelContainer.style.display = 'none';
     }
@@ -336,8 +318,8 @@ function onEffectChange(evt) {
   }
 
   if (typeof noUiSlider === 'undefined') {
-    const start = cfg.slider.start;
-    applyFilterToPreview(cfg.apply(start));
+    const start = effectConfig.slider.start;
+    applyFilterToPreview(effectConfig.apply(start));
     if (state.effectValueInput) {
       state.effectValueInput.value = String(start);
     }
@@ -345,25 +327,25 @@ function onEffectChange(evt) {
   }
 
   noUiSlider.create(state.effectSliderNode, {
-    start: cfg.slider.start,
-    step: cfg.slider.step,
-    range: { min: cfg.slider.min, max: cfg.slider.max },
+    start: effectConfig.slider.start,
+    step: effectConfig.slider.step,
+    range: { min: effectConfig.slider.min, max: effectConfig.slider.max },
     connect: 'lower'
   });
 
   state.noUiSliderInstance = state.effectSliderNode.noUiSlider;
-  state.noUiSliderInstance.set(cfg.slider.start);
+  state.noUiSliderInstance.set(effectConfig.slider.start);
 
   if (state.effectValueInput) {
-    state.effectValueInput.value = String(cfg.slider.start);
+    state.effectValueInput.value = String(effectConfig.slider.start);
   }
 
   state.noUiSliderInstance.on('update', (values) => {
-    const raw = values[0];
-    const parsed = (cfg.slider.step >= 1) ? Math.round(Number(raw)) : Number(raw);
-    applyFilterToPreview(cfg.apply(parsed));
+    const valueString = values[0];
+    const parsedValue = (effectConfig.slider.step >= 1) ? Math.round(Number(valueString)) : Number(valueString);
+    applyFilterToPreview(effectConfig.apply(parsedValue));
     if (state.effectValueInput) {
-      state.effectValueInput.value = String(parsed);
+      state.effectValueInput.value = String(parsedValue);
     }
   });
 }
@@ -396,12 +378,31 @@ function enableUploadListener() {
   }
 
   state.fileInput.addEventListener('change', () => {
+    const file = state.fileInput.files && state.fileInput.files[0];
+
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+
+      const previewImage = state.previewImage || document.querySelector('.img-upload__preview img');
+      const effectsPreviewNodes = (state.effectsPreviewNodes && state.effectsPreviewNodes.length)
+        ? state.effectsPreviewNodes
+        : Array.from(document.querySelectorAll('.effects__preview'));
+
+      if (previewImage) {
+        previewImage.src = objectUrl;
+      }
+
+      effectsPreviewNodes.forEach((effectNode) => {
+        effectNode.style.backgroundImage = `url(${objectUrl})`;
+      });
+    }
+
     openForm();
   });
 
   if (state.cancelBtn) {
-    state.cancelBtn.addEventListener('click', (ev) => {
-      ev.preventDefault();
+    state.cancelBtn.addEventListener('click', (evt) => {
+      evt.preventDefault();
       closeForm();
     });
   }
@@ -425,14 +426,14 @@ function handleFormSubmit() {
   state.form.addEventListener('submit', onFormSubmit);
 }
 
-async function onFormSubmit(e) {
-  e.preventDefault();
+async function onFormSubmit(evt) {
+  evt.preventDefault();
 
   let valid = true;
   if (state.pristine) {
     try {
       valid = state.pristine.validate();
-    } catch (err) {
+    } catch (error) {
       valid = true;
     }
   }
@@ -441,7 +442,7 @@ async function onFormSubmit(e) {
     return;
   }
 
-  const fd = new FormData(state.form);
+  const formData = new FormData(state.form);
 
   if (state.submitBtn) {
     state.submitBtn.disabled = true;
@@ -452,13 +453,14 @@ async function onFormSubmit(e) {
   }
 
   try {
-    const resp = await fetch(UPLOAD_URL, { method: 'POST', body: fd });
-    const text = await resp.text();
-    document.open();
-    document.write(text);
-    document.close();
+    await sendData(formData);
+    closeForm();
+    showSuccessMessage();
   } catch (err) {
-    notify('Ошибка при отправке формы. Попробуйте ещё раз.');
+    showErrorMessage(
+      () => document.removeEventListener('keydown', onDocumentKeydown),
+      () => document.addEventListener('keydown', onDocumentKeydown)
+    );
   } finally {
     if (state.submitBtn) {
       state.submitBtn.disabled = false;

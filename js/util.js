@@ -1,15 +1,42 @@
-export const getRandomInteger = (min, max) => {
-  const result = Math.random() * (max - min + 1) + min;
-  return Math.floor(result);
+const query = (selector, root = document) => {
+  try {
+    return root.querySelector(selector);
+  } catch (error) {
+    return null;
+  }
 };
 
-export const getRandomArrayElement = (elements) =>
-  elements[getRandomInteger(0, elements.length - 1)];
+const queryAll = (selector, root = document) => {
+  try {
+    return Array.from(root.querySelectorAll(selector));
+  } catch (error) {
+    return [];
+  }
+};
 
-export const createIdGenerator = () => {
-  let lastGeneratedId = 0;
-  return () => {
-    lastGeneratedId += 1;
-    return lastGeneratedId;
-  };
+const showNotification = (text) => {
+  const node = document.createElement('div');
+  node.style.zIndex = '100';
+  node.style.position = 'fixed';
+  node.style.left = '0';
+  node.style.top = '0';
+  node.style.right = '0';
+  node.style.padding = '10px 3px';
+  node.style.fontSize = '20px';
+  node.style.textAlign = 'center';
+  node.style.backgroundColor = 'red';
+  node.style.color = 'white';
+  node.textContent = text;
+
+  document.body.append(node);
+
+  setTimeout(() => {
+    node.remove();
+  }, 5000);
+};
+
+export {
+  query,
+  queryAll,
+  showNotification
 };

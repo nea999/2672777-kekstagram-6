@@ -1,4 +1,4 @@
-import { photos } from './main.js';
+let photos = [];
 
 const bigPicture = document.querySelector('.big-picture');
 const bigPictureImg = bigPicture.querySelector('.big-picture__img img');
@@ -13,17 +13,28 @@ const COMMENTS_PLUS = 5;
 let currentPhoto = null;
 let shownCommentsCount = 0;
 
+const setPhotos = (newPhotos) => {
+  photos = Array.isArray(newPhotos) ? newPhotos.slice() : [];
+};
+
 const createCommentElement = ({ avatar, message, name }) => {
   const commentElement = document.createElement('li');
   commentElement.classList.add('social__comment');
-  commentElement.innerHTML = `
-    <img
-      class="social__picture"
-      src="${avatar}"
-      alt="${name}"
-      width="35" height="35">
-    <p class="social__text">${message}</p>
-  `;
+
+  const avatarElement = document.createElement('img');
+  avatarElement.classList.add('social__picture');
+  avatarElement.src = avatar;
+  avatarElement.alt = name;
+  avatarElement.width = 35;
+  avatarElement.height = 35;
+
+  const textElement = document.createElement('p');
+  textElement.classList.add('social__text');
+  textElement.textContent = message;
+
+  commentElement.appendChild(avatarElement);
+  commentElement.appendChild(textElement);
+
   return commentElement;
 };
 
@@ -57,7 +68,9 @@ const resetComments = () => {
 };
 
 const openBigPicture = (photoId) => {
-  currentPhoto = photos.find((photo) => photo.id === photoId);
+  const numericId = Number(photoId);
+  currentPhoto = photos.find((photo) => photo.id === numericId);
+
   if (!currentPhoto) {
     return;
   }
@@ -96,4 +109,7 @@ document.addEventListener('keydown', (evt) => {
   }
 });
 
-export { openBigPicture };
+export {
+  openBigPicture,
+  setPhotos
+};
