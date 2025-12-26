@@ -1,41 +1,29 @@
-import { photos } from './photos.js';
-import { openBigPicture } from './big-picture.js';
-import { initForm, enableUploadListener, bindScaleAndEffects,  handleFormSubmit } from './form.js';
-
-export { photos };
+import { openBigPicture, setPhotos } from './big-picture.js';
+import { initForm, enableUploadListener, bindScaleAndEffects, handleFormSubmit } from './upload-form.js';
+import { getPhotos } from './api.js';
+import { renderThumbnails } from './pictures.js';
 
 const pictureContainer = document.querySelector('.pictures');
-const pictureTemplate = document.querySelector('#picture').content.querySelector('.picture');
 
-const createThumbnail = (photo) => {
-  const thumbnail = pictureTemplate.cloneNode(true);
+const showDataLoadError = (message) => {
+  const node = document.createElement('div');
+  node.style.zIndex = '100';
+  node.style.position = 'fixed';
+  node.style.left = '0';
+  node.style.top = '0';
+  node.style.right = '0';
+  node.style.padding = '10px 3px';
+  node.style.fontSize = '20px';
+  node.style.textAlign = 'center';
+  node.style.backgroundColor = 'red';
+  node.style.color = 'white';
+  node.textContent = message;
 
-  thumbnail.querySelector('.picture__img').src = photo.url;
-  thumbnail.querySelector('.picture__img').alt = photo.description;
-  thumbnail.querySelector('.picture__likes').textContent = photo.likes;
-  thumbnail.querySelector('.picture__comments').textContent = photo.comments.length;
+  document.body.append(node);
 
-  thumbnail.addEventListener('click', (evt) => {
-    evt.preventDefault();
-    openBigPicture(photo.id);
-  });
-
-  return thumbnail;
-};
-
-const renderThumbnails = () => {
-  const fragment = document.createDocumentFragment();
-
-  photos.forEach((photo) => {
-    const thumbnail = createThumbnail(photo);
-    fragment.appendChild(thumbnail);
-  });
-
-
-  const existingPictures = pictureContainer.querySelectorAll('.picture');
-  existingPictures.forEach((picture) => picture.remove());
-
-  pictureContainer.appendChild(fragment);
+  setTimeout(() => {
+    node.remove();
+  }, 5000);
 };
 
 
@@ -64,5 +52,25 @@ document.addEventListener('DOMContentLoaded', () => {
   bindScaleAndEffects();
   handleFormSubmit();
 
-  renderThumbnails();
+  getPhotos()
+    .then((photos) => {
+      setPhotos(photos);
+      renderThumbnails(photos);
+    })
+    .catch(() => {
+      showDataLoadError('Не удалось загрузить данные. Попробуйте обновить страницу позже.');
+    });
+
+  if (pictureContainer) {
+    pictureContainer.addEventListener('click', (evt) => {
+      const picture = evt.target.closest('.picture');
+      if (!picture) {
+        return;
+      }
+
+      evt.preventDefault();
+      const photoId = Number(picture.dataset.id);
+      openBigPicture(photoId);
+    });
+  }
 });
