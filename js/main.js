@@ -2,6 +2,7 @@ import { openBigPicture, setPhotos } from './big-picture.js';
 import { initForm, enableUploadListener, bindScaleAndEffects, handleFormSubmit } from './upload-form.js';
 import { getPhotos } from './api.js';
 import { renderThumbnails } from './pictures.js';
+import { initFilters } from './filters.js';
 
 const pictureContainer = document.querySelector('.pictures');
 
@@ -56,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .then((photos) => {
       setPhotos(photos);
       renderThumbnails(photos);
+      initFilters(photos);
     })
     .catch(() => {
       showDataLoadError('Не удалось загрузить данные. Попробуйте обновить страницу позже.');
