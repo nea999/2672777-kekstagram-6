@@ -35,8 +35,39 @@ const showNotification = (text) => {
   }, 5000);
 };
 
+const debounce = (callback, timeoutDelay = 500) => {
+  let timeoutId;
+
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => callback(...args), timeoutDelay);
+  };
+};
+
+const getShuffledArray = (items) => {
+  const result = items.slice();
+
+  for (let index = result.length - 1; index > 0; index--) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    const temporary = result[index];
+    result[index] = result[randomIndex];
+    result[randomIndex] = temporary;
+  }
+
+  return result;
+};
+
+const getRandomUniqueItems = (items, count) => {
+  const shuffled = getShuffledArray(items);
+  const limitedCount = Math.min(count, shuffled.length);
+  return shuffled.slice(0, limitedCount);
+};
+
 export {
   query,
   queryAll,
-  showNotification
+  showNotification,
+  debounce,
+  getShuffledArray,
+  getRandomUniqueItems
 };
