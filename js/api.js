@@ -11,7 +11,7 @@ const getPhotos = () =>
     });
 
 const sendData = (body) =>
-  fetch(SERVER_URL, {
+  fetch(`${SERVER_URL}/`, {
     method: 'POST',
     body
   })
