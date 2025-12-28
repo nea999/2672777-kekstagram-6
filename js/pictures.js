@@ -12,7 +12,6 @@ const createThumbnailElement = (photoData) => {
   thumbnail.querySelector('.picture__likes').textContent = photoData.likes;
   thumbnail.querySelector('.picture__comments').textContent = photoData.comments.length;
 
-  // Нужно для открытия большого фото по клику
   thumbnail.dataset.id = photoData.id;
 
   return thumbnail;
@@ -33,7 +32,6 @@ const renderThumbnails = (photos) => {
     }
   });
 
-  // Удаляем старые миниатюры, если они были
   const existingPictures = picturesContainer.querySelectorAll('.picture');
   existingPictures.forEach((picture) => picture.remove());
 

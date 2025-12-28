@@ -166,14 +166,14 @@ function closeForm() {
   try {
     state.form.reset();
   } catch (error) {
-    // ignore
+    // игнорируем
   }
 
   if (state.pristine) {
     try {
       state.pristine.reset();
     } catch (error) {
-      // ignore
+      // игнорируем
     }
   }
 
@@ -181,7 +181,7 @@ function closeForm() {
     try {
       state.noUiSliderInstance.destroy();
     } catch (error) {
-      // ignore
+      // игнорим
     }
     state.noUiSliderInstance = null;
   }
@@ -208,7 +208,7 @@ function closeForm() {
     try {
       state.fileInput.value = '';
     } catch (error) {
-      // ignore
+      // игнорим
     }
   }
 
@@ -295,7 +295,7 @@ function onEffectChange(evt) {
     try {
       state.noUiSliderInstance.destroy();
     } catch (error) {
-      // ignore
+      // игнорируем
     }
     state.noUiSliderInstance = null;
   }
