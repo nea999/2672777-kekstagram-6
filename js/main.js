@@ -8,6 +8,7 @@ const pictureContainer = document.querySelector('.pictures');
 
 const showDataLoadError = (message) => {
   const node = document.createElement('div');
+  node.classList.add('data-error');
   node.style.zIndex = '100';
   node.style.position = 'fixed';
   node.style.left = '0';
@@ -18,6 +19,7 @@ const showDataLoadError = (message) => {
   node.style.textAlign = 'center';
   node.style.backgroundColor = 'red';
   node.style.color = 'white';
+
   node.textContent = message;
 
   document.body.append(node);
