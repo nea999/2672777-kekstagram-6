@@ -1,4 +1,6 @@
-const query = (selector, root = document) => {
+const ALERT_SHOW_TIME = 5000;
+
+const findElement = (selector, root = document) => {
   try {
     return root.querySelector(selector);
   } catch (error) {
@@ -6,7 +8,7 @@ const query = (selector, root = document) => {
   }
 };
 
-const queryAll = (selector, root = document) => {
+const findAllElements = (selector, root = document) => {
   try {
     return Array.from(root.querySelectorAll(selector));
   } catch (error) {
@@ -14,8 +16,12 @@ const queryAll = (selector, root = document) => {
   }
 };
 
+const isEscapeKey = (evt) => evt.key === 'Escape' || evt.key === 'Esc';
+
 const showNotification = (text) => {
   const node = document.createElement('div');
+  node.classList.add('data-error');
+
   node.style.zIndex = '100';
   node.style.position = 'fixed';
   node.style.left = '0';
@@ -32,7 +38,7 @@ const showNotification = (text) => {
 
   setTimeout(() => {
     node.remove();
-  }, 5000);
+  }, ALERT_SHOW_TIME);
 };
 
 const debounce = (callback, timeoutDelay = 500) => {
@@ -64,8 +70,9 @@ const getRandomUniqueItems = (items, count) => {
 };
 
 export {
-  query,
-  queryAll,
+  findElement,
+  findAllElements,
+  isEscapeKey,
   showNotification,
   debounce,
   getShuffledArray,

@@ -1,7 +1,8 @@
-import { showNotification } from './util.js';
+import { showNotification, isEscapeKey } from './util.js';
 
 const SUCCESS_TEMPLATE_ID = '#success';
 const ERROR_TEMPLATE_ID = '#error';
+const MESSAGE_Z_INDEX = '110';
 
 const showSuccessMessage = () => {
   const template = document.querySelector(SUCCESS_TEMPLATE_ID);
@@ -19,11 +20,12 @@ const showSuccessMessage = () => {
   }
 
   const successElement = successFragment.cloneNode(true);
+  successElement.style.zIndex = MESSAGE_Z_INDEX;
   const successButton = successElement.querySelector('.success__button');
   const innerSelector = '.success__inner';
 
   const onSuccessEscKeydown = (evt) => {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
+    if (isEscapeKey(evt)) {
       evt.preventDefault();
       closeSuccessMessage();
     }
@@ -62,6 +64,7 @@ const showErrorMessage = (disableFormEsc, enableFormEsc) => {
   }
 
   const errorElement = errorFragment.cloneNode(true);
+  errorElement.style.zIndex = MESSAGE_Z_INDEX;
   const errorButton = errorElement.querySelector('.error__button');
   const innerSelector = '.error__inner';
 
@@ -70,7 +73,7 @@ const showErrorMessage = (disableFormEsc, enableFormEsc) => {
   }
 
   const onErrorEscKeydown = (evt) => {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
+    if (isEscapeKey(evt)) {
       evt.preventDefault();
       closeErrorMessage();
     }

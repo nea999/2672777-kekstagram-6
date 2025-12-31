@@ -1,5 +1,4 @@
-// form-validation.js
-import { query } from './util.js';
+import { findElement } from './util.js';
 
 const HASHTAG_MAX_COUNT = 5;
 const COMMENT_MAX_LENGTH = 140;
@@ -19,8 +18,8 @@ const initValidation = (form, selectors) => {
       errorTextClass: 'img-upload__error'
     }, true);
 
-    const hashtagsNode = query(selectors.hashtags, form) || query(selectors.hashtags);
-    const descriptionNode = query(selectors.description, form) || query(selectors.description);
+    const hashtagsNode = findElement(selectors.hashtags, form) || findElement(selectors.hashtags);
+    const descriptionNode = findElement(selectors.description, form) || findElement(selectors.description);
 
     if (hashtagsNode) {
       pristine.addValidator(

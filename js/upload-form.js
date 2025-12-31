@@ -1,5 +1,5 @@
 import { sendData } from './api.js';
-import { query, queryAll } from './util.js';
+import { findElement, findAllElements, isEscapeKey } from './util.js';
 import { showSuccessMessage, showErrorMessage } from './form-messages.js';
 import { initValidation } from './form-validation.js';
 
@@ -67,7 +67,7 @@ function initForm(options = {}) {
 
   state.selectors = Object.assign({}, DEFAULT_SELECTORS, options);
   const selectors = state.selectors;
-  const form = query(selectors.form);
+  const form = findElement(selectors.form);
 
   if (!form) {
     state.inited = true;
@@ -75,20 +75,20 @@ function initForm(options = {}) {
   }
 
   state.form = form;
-  state.fileInput = form.querySelector(selectors.fileInput) || query(selectors.fileInput);
-  state.overlay = form.querySelector(selectors.overlay) || query(selectors.overlay);
-  state.cancelBtn = form.querySelector(selectors.cancelBtn) || query(selectors.cancelBtn);
-  state.submitBtn = form.querySelector(selectors.submitBtn) || query(selectors.submitBtn);
-  state.previewContainer = form.querySelector(selectors.previewContainer) || query(selectors.previewContainer);
-  state.previewImage = form.querySelector(selectors.previewImage) || query(selectors.previewImage);
-  state.effectsList = form.querySelector(selectors.effectsList) || query(selectors.effectsList);
-  state.effectsPreviewNodes = queryAll(selectors.effectsPreview, form);
-  state.effectLevelContainer = form.querySelector(selectors.effectLevelContainer) || query(selectors.effectLevelContainer);
-  state.effectSliderNode = form.querySelector(selectors.effectSliderNode) || query(selectors.effectSliderNode);
-  state.effectValueInput = form.querySelector(selectors.effectValueInput) || query(selectors.effectValueInput);
-  state.scaleSmaller = form.querySelector(selectors.scaleSmaller) || query(selectors.scaleSmaller);
-  state.scaleBigger = form.querySelector(selectors.scaleBigger) || query(selectors.scaleBigger);
-  state.scaleValueNode = form.querySelector(selectors.scaleValue) || query(selectors.scaleValue);
+  state.fileInput = form.querySelector(selectors.fileInput) || findElement(selectors.fileInput);
+  state.overlay = form.querySelector(selectors.overlay) || findElement(selectors.overlay);
+  state.cancelBtn = form.querySelector(selectors.cancelBtn) || findElement(selectors.cancelBtn);
+  state.submitBtn = form.querySelector(selectors.submitBtn) || findElement(selectors.submitBtn);
+  state.previewContainer = form.querySelector(selectors.previewContainer) || findElement(selectors.previewContainer);
+  state.previewImage = form.querySelector(selectors.previewImage) || findElement(selectors.previewImage);
+  state.effectsList = form.querySelector(selectors.effectsList) || findElement(selectors.effectsList);
+  state.effectsPreviewNodes = findAllElements(selectors.effectsPreview, form);
+  state.effectLevelContainer = form.querySelector(selectors.effectLevelContainer) || findElement(selectors.effectLevelContainer);
+  state.effectSliderNode = form.querySelector(selectors.effectSliderNode) || findElement(selectors.effectSliderNode);
+  state.effectValueInput = form.querySelector(selectors.effectValueInput) || findElement(selectors.effectValueInput);
+  state.scaleSmaller = form.querySelector(selectors.scaleSmaller) || findElement(selectors.scaleSmaller);
+  state.scaleBigger = form.querySelector(selectors.scaleBigger) || findElement(selectors.scaleBigger);
+  state.scaleValueNode = form.querySelector(selectors.scaleValue) || findElement(selectors.scaleValue);
 
   if (state.previewImage && !state.defaultPreviewSrc) {
     state.defaultPreviewSrc = state.previewImage.src;
@@ -110,12 +110,12 @@ function initForm(options = {}) {
 
   state.pristine = initValidation(state.form, state.selectors);
 
-  const hashtagsNode = query(state.selectors.hashtags, state.form) || query(state.selectors.hashtags);
-  const descriptionNode = query(state.selectors.description, state.form) || query(state.selectors.description);
+  const hashtagsNode = findElement(state.selectors.hashtags, state.form) || findElement(state.selectors.hashtags);
+  const descriptionNode = findElement(state.selectors.description, state.form) || findElement(state.selectors.description);
 
   if (hashtagsNode) {
     hashtagsNode.addEventListener('keydown', (evt) => {
-      if (evt.key === 'Escape' || evt.key === 'Esc') {
+      if (isEscapeKey(evt)) {
         evt.stopPropagation();
       }
     });
@@ -123,7 +123,7 @@ function initForm(options = {}) {
 
   if (descriptionNode) {
     descriptionNode.addEventListener('keydown', (evt) => {
-      if (evt.key === 'Escape' || evt.key === 'Esc') {
+      if (isEscapeKey(evt)) {
         evt.stopPropagation();
       }
     });
@@ -217,9 +217,9 @@ function closeForm() {
 }
 
 function onDocumentKeydown(evt) {
-  if (evt.key === 'Escape' || evt.key === 'Esc') {
-    const hashtagsNodeLocal = query(state.selectors.hashtags, state.form) || query(state.selectors.hashtags);
-    const descriptionNodeLocal = query(state.selectors.description, state.form) || query(state.selectors.description);
+  if (isEscapeKey(evt)) {
+    const hashtagsNodeLocal = findElement(state.selectors.hashtags, state.form) || findElement(state.selectors.hashtags);
+    const descriptionNodeLocal = findElement(state.selectors.description, state.form) || findElement(state.selectors.description);
 
     if (document.activeElement === hashtagsNodeLocal || document.activeElement === descriptionNodeLocal) {
       return;

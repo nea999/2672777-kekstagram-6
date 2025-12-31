@@ -1,27 +1,21 @@
 const SERVER_URL = 'https://29.javascript.htmlacademy.pro/kekstagram';
 
-const getPhotos = () =>
-  fetch(`${SERVER_URL}/data`)
+const request = (path = '', options = {}) =>
+  fetch(`${SERVER_URL}${path}`, options)
     .then((response) => {
-      if (response.ok) {
-        return response.json();
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
       }
 
-      throw new Error(`${response.status} ${response.statusText}`);
+      return response.json();
     });
 
-const sendData = (body) =>
-  fetch(SERVER_URL, {
-    method: 'POST',
-    body
-  })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      }
+const getPhotos = () => request('/data');
 
-      throw new Error(`${response.status} ${response.statusText}`);
-    });
+const sendData = (body) => request('/', {
+  method: 'POST',
+  body
+});
 
 export {
   getPhotos,
