@@ -1,4 +1,4 @@
-const ALERT_SHOW_TIME = 5000;
+const alertShowTime = 5000;
 
 const findElement = (selector, root = document) => {
   try {
@@ -38,7 +38,7 @@ const showNotification = (text) => {
 
   setTimeout(() => {
     node.remove();
-  }, ALERT_SHOW_TIME);
+  }, alertShowTime);
 };
 
 const debounce = (callback, timeoutDelay = 500) => {
