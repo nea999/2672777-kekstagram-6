@@ -5,7 +5,6 @@ let photos = [];
 const bigPicture = document.querySelector('.big-picture');
 const bigPictureImg = bigPicture.querySelector('.big-picture__img img');
 const likesCount = bigPicture.querySelector('.likes-count');
-const commentsCount = bigPicture.querySelector('.comments-count');
 const socialComments = bigPicture.querySelector('.social__comments');
 const socialCaption = bigPicture.querySelector('.social__caption');
 const commentsLoader = bigPicture.querySelector('.comments-loader');
@@ -14,6 +13,38 @@ const closeButton = bigPicture.querySelector('.big-picture__cancel');
 const commentsBatchSize = 5;
 let currentPhoto = null;
 let shownCommentsCount = 0;
+let shownCountElement = socialCommentCount.querySelector('.social__comment-shown-count');
+let totalCountElement = socialCommentCount.querySelector('.social__comment-total-count');
+
+if (!shownCountElement || !totalCountElement) {
+  shownCountElement = document.createElement('span');
+  shownCountElement.classList.add('social__comment-shown-count');
+  shownCountElement.textContent = '0';
+
+  totalCountElement = document.createElement('span');
+  totalCountElement.classList.add('social__comment-total-count');
+  totalCountElement.textContent = '0';
+
+  socialCommentCount.textContent = '';
+  socialCommentCount.append(
+    shownCountElement,
+    ' из ',
+    totalCountElement,
+    ' комментариев'
+  );
+}
+
+
+const updateCommentsCounter = () => {
+  if (!currentPhoto) {
+    shownCountElement.textContent = '0';
+    totalCountElement.textContent = '0';
+    return;
+  }
+
+  shownCountElement.textContent = String(shownCommentsCount);
+  totalCountElement.textContent = String(currentPhoto.comments.length);
+};
 
 const setPhotos = (newPhotos) => {
   photos = Array.isArray(newPhotos) ? newPhotos.slice() : [];
@@ -41,6 +72,10 @@ const createCommentElement = ({ avatar, message, name }) => {
 };
 
 const renderComments = () => {
+  if (!currentPhoto) {
+    return;
+  }
+
   const comments = currentPhoto.comments;
   const commentsToShow = Math.min(shownCommentsCount + commentsBatchSize, comments.length);
 
@@ -51,13 +86,15 @@ const renderComments = () => {
 
   shownCommentsCount = commentsToShow;
 
-  socialCommentCount.innerHTML =
-    `${shownCommentsCount} из <span class="comments-count">${comments.length}</span> комментариев`;
+  updateCommentsCounter();
 
-  commentsLoader.classList.toggle('hidden', shownCommentsCount >= comments.length);
+  if (commentsLoader) {
+    commentsLoader.classList.toggle('hidden', shownCommentsCount >= comments.length);
+  }
 };
 
-const onLoadMoreClick = () => {
+const onLoadMoreClick = (evt) => {
+  evt.preventDefault();
   renderComments();
 };
 
@@ -87,7 +124,7 @@ const openBigPicture = (photoId) => {
   bigPictureImg.src = currentPhoto.url;
   bigPictureImg.alt = currentPhoto.description;
   likesCount.textContent = currentPhoto.likes;
-  commentsCount.textContent = currentPhoto.comments.length;
+
   socialCaption.textContent = currentPhoto.description;
 
   resetComments();
