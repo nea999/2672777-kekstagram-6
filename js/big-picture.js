@@ -1,7 +1,6 @@
 import { isEscapeKey } from './util.js';
 
 let photos = [];
-
 const bigPicture = document.querySelector('.big-picture');
 const bigPictureImg = bigPicture.querySelector('.big-picture__img img');
 const likesCount = bigPicture.querySelector('.likes-count');
