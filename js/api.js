@@ -1,6 +1,6 @@
 const SERVER_URL = 'https://29.javascript.htmlacademy.pro/kekstagram';
 
-const request = (path = '', options = {}) =>
+const sendRequest = (path = '', options = {}) =>
   fetch(`${SERVER_URL}${path}`, options)
     .then((response) => {
       if (!response.ok) {
@@ -10,9 +10,9 @@ const request = (path = '', options = {}) =>
       return response.json();
     });
 
-const getPhotos = () => request('/data');
+const getPhotos = () => sendRequest('/data');
 
-const sendData = (body) => request('/', {
+const sendData = (body) => sendRequest('/', {
   method: 'POST',
   body
 });
